@@ -28,3 +28,6 @@ while i < 25:
     
 
 print('\nResult Dataset:\n', df)
+
+df.to_csv('data_1.csv', header = False)
+#Undo DocString to save First Analysis as csv
