@@ -35,10 +35,13 @@ while i < 25:
 
     i +=1
     
+
 #print('\nResult Dataset:\n', df)
 
+"""df.to_csv("data_1")"""
+
 #for clustering: find the optimal amount of f-means for clustering, staderdized data (unnecessary because already standerdized),
-# do PCA becasue high dimensionality and avoid the curese of dimensionality, plot the data?/create processed csv data for Sher to plot
+# do PCA becasue high dimensionality and avoid the curese of dimensionality, plot the data?/create processed csv data for team to plot
 #add to the original dataset which cluster each ID belong to -> filter through each ID in another loop and do another cycle of primary analysis 
 
 """Clustering the Users"""
