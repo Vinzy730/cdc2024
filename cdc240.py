@@ -4,6 +4,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+import matplotlib.pyplot as plt
+import seaborn as sns 
 
 ds = pd.read_csv('data_SS.csv')
 #ds -> original dataset 
@@ -77,9 +79,9 @@ plt.show()
 
 
 kmeans_pca_labels = KMeans(n_clusters = 2, init = "k-means++", random_state=1).fit(scores_pca).labels_ #2 clusters is best confirmed again
-print(calinski_harabasz_score(dn.values, kmeans_pca_labels)) #want as high as possible because higher is denser and more separated
-print(davies_bouldin_score(dn.values, kmeans_pca_labels)) #low as possible to be more denser and more seperate
-print(silhouette_score(dn.values, kmeans_pca_labels)) #as close to 1 as possible to be more seperate from other cluster
+#print(calinski_harabasz_score(dn.values, kmeans_pca_labels)) #want as high as possible because higher is denser and more separated
+#print(davies_bouldin_score(dn.values, kmeans_pca_labels)) #low as possible to be more denser and more seperate
+#print(silhouette_score(dn.values, kmeans_pca_labels)) #as close to 1 as possible to be more seperate from other cluster
                                                         #if close to 0 (as it is), means there is bordering and even some overlapping clusters
                                                         #which makes sense in this context of reviews
 #these are three different tests that tells how good the chosen amount of clusters are
@@ -87,8 +89,18 @@ print(silhouette_score(dn.values, kmeans_pca_labels)) #as close to 1 as possible
 dn = dn.join(pd.DataFrame(scores_pca), how = "right")
 dn["Segment K-means PCA"] = kmeans_pca_labels
 
+dn["Segments"] = dn["Segment K-means PCA"].map({0 : "Lower Average Review", 1 : "Higher Average Review"})
+
+x_axis = dn[1]
+y_axis = dn[0]
+plt.title("Clustering Users Based on Average Reviews")
+plt.figure(figsize=(10,8))
+sns.scatterplot(x=x_axis,y=y_axis,hue=dn['Segments'], palette= ["g","c"])
+plt.show()
+#graph for the clusterS
+
+
 """dn.to_csv("cluster.csv")"""
-#DO NOT GRAB THIS IT WAS FOR A TEST
 #convert new table to csv to check if formatting is correct
 #column 0 is segment 1 which should be y-axis of graph
 #column 1 is segment 2 which should be the x-axis of graph
@@ -98,59 +110,62 @@ dn["Segment K-means PCA"] = kmeans_pca_labels
 
 """Secondary Analysis"""
 
-d0 = pd.DataFrame(columns = ["mean", "number of reviews", "number of no reviews"])
-d1 = pd.DataFrame(columns = ["mean", "number of reviews", "number of no reviews"])
+d0 = pd.DataFrame(columns = ["mean", "number of reviews", "number of no reviews"], index = range(1,25))
+d0.fillna(0, inplace=True)
+d1 = pd.DataFrame(columns = ["mean", "number of reviews", "number of no reviews"], index = range(1,25))
+d1.fillna(0, inplace=True)
 #where d0 is the primary analysis but for only cluster group 0 and d1 for cluster group 1
 
-i = 1
+
 #for d0
-while i < 25:
-    num_of_review = 0
-    num_not_review = 0
-    mean = 0
+j = 0
+i = 0
+while j < 5453:
+    if (dn.at[j, "Segment K-means PCA"] == 0):
+        i=0
+        while i < 24:
+            if ((dn.at[j, f"Category {i+1}"]) > 0):
+                d0.loc[i+1, "number of reviews"] += 1
+        #if statement
 
-    num_of_review = dn[(dn[f"Category {i}"] > 0) & dn["Segment K-means PCA"] == 0].count(axis="index").loc['Category 1']
-    #before .count -> filters out rows with 0 AND the cluster type has to equal 0
-    #after .count -> counts the number of rows **AS A SERIES**
-    #.loc -> pulls a specific number from the series so fixes a major issue
-    num_not_review = dn[(dn[f"Category {i}"] == 0) & dn["Segment K-means PCA"] == 0].count(axis="index").loc['Category 1']
-    #before .count -> filters to only get rows with 0 AND the cluster type has to equal 0
-    #after .count -> counts the number of rows **AS A SERIES**
-    #.loc -> pulls a specific number from the series so fixes a major issue
-    if ((dn["Segment K-means PCA"]).eq(0)):
-        mean = dn[f"Category {i}"].sum() / num_of_review
-        #if -> check if in cluster group 0
-        #  .sum -> adds up the row (don't have to filter out 0 cause adding 0 doesn't change anything)
-
-    d0.loc[len(df)] = {"mean" : mean, "number of reviews" : num_of_review, "number of no reviews" : num_not_review}
-    #add to the new dataset the mean, number of users who review that type of attraction, number of users who don't review that type of attraction
-
-    i +=1
-
-i = 1
-#for d1
-while i < 25:
-    num_of_review = 0
-    num_not_review = 0
-    mean = 0
-
-    num_of_review = dn[(dn[f"Category {i}"] > 0) & dn["Segment K-means PCA"] == 1].count(axis="index").loc['Category 1']
-    #before .count -> filters out rows with 0 AND the cluster type has to equal 0
-    #after .count -> counts the number of rows **AS A SERIES**
-    #.loc -> pulls a specific number from the series so fixes a major issue
-    num_not_review = dn[(dn[f"Category {i}"] == 0) & dn["Segment K-means PCA"] == 1].count(axis="index").loc['Category 1']
-    #before .count -> filters to only get rows with 0 AND the cluster type has to equal 0
-    #after .count -> counts the number of rows **AS A SERIES**
-    #.loc -> pulls a specific number from the series so fixes a major issue
-    if ((dn["Segment K-means PCA"]).eq(1)):
-        mean = dn[f"Category {i}"].sum() / num_of_review
-        #if -> check if in cluster group 0
-        #  .sum -> adds up the row (don't have to filter out 0 cause adding 0 doesn't change anything)
-    
-    d1.loc[len(df)] = {"mean" : mean, "number of reviews" : num_of_review, "number of no reviews" : num_not_review}
-    #add to the new dataset the mean, number of users who review that type of attraction, number of users who don't review that type of attraction
-
-    i +=1
-
+            if ((dn.at[j, f"Category {i+1}"]) == 0):
+                d0.loc[i+1, "number of no reviews"] += 1
+            i += 1
+        i=0
+        mean = 0
+        while i < 24:
+            mean = ds[f"Category {i+1}"].sum() / d0.loc[i+1,"number of reviews"]
+            i += 1
+        # .sum -> adds up the row (don't have to filter out 0 cause adding 0 doesn't change anything)
+        
+        d0.loc[:,"mean"] = mean
+        #add to the new dataset the mean, number of users who review that type of attraction, number of users who don't review that type of attraction
+    j += 1
 d0.to_csv("cluster_0.csv")
+
+#for d1
+j = 0
+i = 0
+while j < 5453:
+    if (dn.at[j, "Segment K-means PCA"] == 1):
+        i=0
+        while i < 24:
+            if ((dn.at[j, f"Category {i+1}"]) > 0):
+                d1.loc[i+1, "number of reviews"] += 1
+        #if statement
+
+            if ((dn.at[j, f"Category {i+1}"]) == 0):
+                d1.loc[i+1, "number of no reviews"] += 1
+            i += 1
+        i=1
+        mean = 0
+        while i < 25:
+            mean = ds[f"Category {i}"].sum() / d1.loc[i,"number of reviews"]
+            i+=1   
+        # .sum -> adds up the row (don't have to filter out 0 cause adding 0 doesn't change anything)
+        
+        d1.loc[:,"mean"] = mean
+        #add to the new dataset the mean, number of users who review that type of attraction, number of users who don't review that type of attraction
+    j += 1
+
 d1.to_csv("cluster_1.csv")
