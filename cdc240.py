@@ -96,9 +96,9 @@ dn["Segments"] = dn["Segment K-means PCA"].map({0 : "Lower Average Review", 1 : 
 
 x_axis = dn[1]
 y_axis = dn[0]
-plt.title("Clustering Users Based on Average Reviews")
 plt.figure(figsize=(10,8))
 sns.scatterplot(x=x_axis,y=y_axis,hue=dn['Segments'], palette= ["g","c"])
+plt.title("Clustering Users Based on Average Reviews")
 plt.show()
 #graph for the clusterS
 
